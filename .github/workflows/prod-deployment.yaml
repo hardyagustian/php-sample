@@ -42,4 +42,4 @@ jobs:
           echo "$TAG"
           touch .env
           docker build -t $TAG -t $TAG_LATEST -f Dockerfile .
-          docker push --all-tags
+          docker push $TAG
