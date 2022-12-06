@@ -6,7 +6,7 @@ concurrency:
 env:
   SERVICE_NAME: eka_backend
   NAMESPACE: apps
-  REGISTRY: hardyasgustian/lab
+  REGISTRY: hardyaagustian/lab
   DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -46,4 +46,4 @@ jobs:
           ## Build image
           docker build -t $TAG -t $TAG_LATEST -f Dockerfile .
           ## PUSH Image
-          docker push $TAG
+          docker push $TAG $TAG_LATEST
