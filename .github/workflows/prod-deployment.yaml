@@ -31,19 +31,15 @@ jobs:
       #  with:
       #    credentials_json: '${{ secrets.GCP_SA_PROD }}'
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ env.DOCKER_USER }}
-          password: ${{ env.DOCKER_PASSWORD }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ env.DOCKER_USER }}/lab:${{ env.VERSION }}
+      - name: Build, tag, and push image Branch Staging
+        id: build-image-stg
+        run: |
+          # Build a docker container and
+          echo $VERSION
+          export TAG=${{ env.REGISTRY }}:release-$VERSION
+          export TAG_LATEST=${{ env.REGISTRY }}:release-latest
+          touch .env
+          echo "$TAG"
+          touch .env
+          docker build -t $TAG -t $TAG_LATEST -f Dockerfile .
+          docker push $TAG -t $TAG_LATEST
