@@ -9,7 +9,7 @@ env:
   REGISTRY: hardyagustian/lab
   DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  
+
 jobs:
   Build:
     if: ${{ github.ref == 'refs/heads/master' }}
@@ -42,4 +42,4 @@ jobs:
           echo "$TAG"
           touch .env
           docker build -t $TAG -t $TAG_LATEST -f Dockerfile .
-          docker push $TAG -t $TAG_LATEST
+          docker push -t $TAG -t $TAG_LATEST
