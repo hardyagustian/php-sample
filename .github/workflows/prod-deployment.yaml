@@ -1,0 +1,46 @@
+name: Deploy-Prod
+on: { push: { branches: [master] } }
+concurrency:
+  group: ${{ github.event_name }}-${{ github.head_ref }}-${{ github.base_ref }}
+  #cancel-in-progress: true
+env:
+  SERVICE_NAME: eka_backend
+  NAMESPACE: apps
+  REGISTRY: hardyagustian/lab
+  DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  Build:
+    if: ${{ github.ref == 'refs/heads/master' }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      #- name: Google Auth
+      #  uses: google-github-actions/auth@v0
+      #  with:
+      #    credentials_json: '${{ secrets.GCP_SA_PROD }}'
+
+      - name: Build, tag, and push image
+        id: build-image-stg
+        run: |
+          # Build a docker container and
+          export VERSION=$(git rev-parse --short HEAD)
+          echo $VERSION
+          export TAG=${{ env.REGISTRY }}:release-$VERSION
+          export TAG_LATEST=${{ env.REGISTRY }}:release-latest
+          touch .env
+          # Login Dockerhub
+          docker login -u $DOCKER_USER -p DOCKER_PASSWORD
+          # Build image
+          docker build -t $TAG -t $TAG_LATEST -f Dockerfile .
+          docker push $TAG $TAG_LATEST
