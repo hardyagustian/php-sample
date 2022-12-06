@@ -1,13 +1,22 @@
-ARG ALPINE_VERSION=3.16.0
-FROM alpine:${ALPINE_VERSION}
-LABEL Description="Technical Test Eka"
-# Setup document root
-WORKDIR /var/www/html
+# Composer Build
+FROM composer:1.9.3 as vendor
+WORKDIR /tmp/
+COPY composer.json composer.json
+COPY composer.lock composer.lock
+
+RUN composer install \
+    --ignore-platform-reqs \
+    --no-interaction \
+    --no-plugins \
+    --no-scripts \
+    --prefer-dist
+
+
 
 # Install packages and remove default server definition
+FROM alpine:3.16.0 as app
 RUN apk update
-RUN apk add --no-cache zip unzip curl sqlite nginx supervisor
-
+RUN apk add --no-cache zip unzip curl sqlite nginx supervisor bash
 
 #Install php8
 RUN apk add --no-cache php8 \
@@ -36,9 +45,9 @@ RUN apk add --no-cache php8 \
     php8-redis
 
 # Installing composer
-RUN curl -sS https://getcomposer.org/installer -o composer-setup.php
-RUN php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-RUN rm -rf composer-setup.php
+#RUN curl -sS https://getcomposer.org/installer -o composer-setup.php
+#RUN php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+#RUN rm -rf composer-setup.php
 
 # Configure supervisor
 RUN mkdir -p /etc/supervisor.d/
@@ -50,22 +59,21 @@ RUN touch /run/php/php8.0-fpm.pid
 COPY ./config/php.ini-prod /etc/php8/php.ini
 COPY ./config/php-fpm.conf /etc/php8/php-fpm.conf
 
+# Setup document root
+RUN mkdir -p /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
 
 # Configure nginx
 COPY ./config/nginx.conf /etc/nginx/
-
 RUN mkdir -p /run/nginx/
 RUN touch /run/nginx/nginx.pid
-
 RUN ln -sf /dev/stdout /var/log/nginx/access.log
 RUN ln -sf /dev/stderr /var/log/nginx/error.log
 
-
-
-# Building process
-COPY ./config/composer.json /var/www/html/
-RUN composer install --no-dev
-RUN chown -R nobody:nobody /var/www/html/
-
+# Copy build
+COPY . /usr/share/nginx/html
+COPY --from=vendor /tmp/vendor/ /usr/share/nginx/html/vendor
+RUN chown -R nobody:nobody /usr/share/nginx/html
+RUN chmod -R 755 /usr/share/nginx/html
 EXPOSE 80
 CMD ["supervisord", "-c", "/etc/supervisor.d/supervisord.ini"]
