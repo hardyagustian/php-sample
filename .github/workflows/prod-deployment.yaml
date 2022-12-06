@@ -46,4 +46,4 @@ jobs:
           ## Build image
           docker build -t $TAG -t $TAG_LATEST -f Dockerfile .
           ## PUSH Image
-          docker push $TAG $TAG_LATEST
+          docker push $TAG
