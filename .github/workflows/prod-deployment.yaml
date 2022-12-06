@@ -40,7 +40,7 @@ jobs:
           export TAG_LATEST=${{ env.REGISTRY }}:release-latest
           touch .env
           # Login Dockerhub
-          echo ${{ env.DOCKER_PASSWORD }} | docker login -u ${{ env.DOCKERHUB_USER }} --password-stdin
+          echo ${{ env.DOCKER_PASSWORD }} | docker login -u ${{ env.DOCKER_USER }} --password-stdin
           # Build image
           docker build -t $TAG -t $TAG_LATEST -f Dockerfile .
           docker push $TAG $TAG_LATEST
