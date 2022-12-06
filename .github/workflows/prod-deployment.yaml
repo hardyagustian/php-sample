@@ -9,8 +9,7 @@ env:
   REGISTRY: hardyagustian/lab
   DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  VERSION: $(git rev-parse --short HEAD)
-
+  
 jobs:
   Build:
     if: ${{ github.ref == 'refs/heads/master' }}
@@ -35,6 +34,7 @@ jobs:
         id: build-image-stg
         run: |
           # Build a docker container and
+          export VERSION=$(git rev-parse --short HEAD)
           echo $VERSION
           export TAG=${{ env.REGISTRY }}:release-$VERSION
           export TAG_LATEST=${{ env.REGISTRY }}:release-latest
